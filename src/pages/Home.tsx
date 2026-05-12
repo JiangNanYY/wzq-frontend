@@ -15,12 +15,19 @@ export const Home: React.FC = () => {
 
   const roomIdFromUrl = searchParams.get('room');
 
+  // 动态获取 API 地址
+  const getApiBase = () => {
+    const protocol = window.location.protocol;
+    const host = window.location.hostname;
+    return `${protocol}//${host}:8888`;
+  };
+
   const handleCreateRoom = async () => {
     if (!nickname.trim()) return;
     
     setIsCreating(true);
     try {
-      const response = await fetch('http://localhost:8888/api/rooms', {
+      const response = await fetch(`${getApiBase()}/api/rooms`, {
         method: 'POST',
       });
       const data = await response.json();
@@ -35,10 +42,24 @@ export const Home: React.FC = () => {
     }
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(inviteUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopyLink = async () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(inviteUrl);
+      } else {
+        // 降级方案
+        const textArea = document.createElement('textarea');
+        textArea.value = inviteUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Copy failed:', error);
+    }
   };
 
   const handleJoinRoom = () => {

@@ -1,7 +1,14 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { RoomMessage } from '../types';
 
-const WS_BASE = 'ws://localhost:8888/ws/room';
+// 动态获取当前主机地址，支持局域网访问
+const getWsBase = () => {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const host = window.location.hostname;
+  return `${protocol}//${host}:8888/ws/room`;
+};
+
+const WS_BASE = getWsBase();
 
 export const useWebSocket = (
   roomId: string | null,

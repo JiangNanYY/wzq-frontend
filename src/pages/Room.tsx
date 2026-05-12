@@ -67,11 +67,25 @@ export const Room: React.FC = () => {
     navigate('/');
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     const url = `${window.location.origin}?room=${roomId}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // 降级方案
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Copy failed:', error);
+    }
   };
 
   const currentPlayer = room?.players.find(p => p.id === userId);
@@ -82,7 +96,7 @@ export const Room: React.FC = () => {
                   room?.players.length < 2;
   
   const isParticipatingPlayer = currentPlayer !== undefined;
-  const isSpectator = room && !isParticipatingPlayer;
+  const isSpectator = !!room && !isParticipatingPlayer;
   const isWinner = room?.winner?.id === userId;
 
   console.log('Room - userId:', userId, 'winner:', room?.winner, 'isWinner:', isWinner, 'canStart:', canStart);

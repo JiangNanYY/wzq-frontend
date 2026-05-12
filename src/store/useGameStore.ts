@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Room, User } from '../types';
+import { Room } from '../types';
 
 interface GameState {
   userId: string;
